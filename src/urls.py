@@ -9,7 +9,9 @@ urlpatterns = [
     path('Employee_register', views.Employee_register),
 
     path('customerscreen', views.customer_view),
-    path('emloyeescreen', views.employee_view),
+    path('employeescreen', views.employee_view),
+
+    path('auth/reset-password/<slug:authToken>', views.reset_password),
 
 
 ]

@@ -13,6 +13,15 @@ from django_otp import devices_for_user
 from django_otp.plugins.otp_email.models import EmailDevice
 from .permissions import IsEmailVerified
 
+####
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.core.mail import send_mail
+from django.conf import settings
+
+
 EMPLOYEE = 'Employee'
 CUSTOMER = 'Customer'
 ADMIN = 'Admin'
@@ -87,31 +96,6 @@ def login(request):
         }
     )
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def send_email_otp(request):
-#     user = request.user
-#     if user.is_anonymous:
-#         return redirect('login')
-
-#     if request.method == 'POST':
-#         otp = OTP.objects.get(user=user)
-#         if not otp.email_otp_enabled:
-#             otp.enable_email_otp()
-
-#         email_device = otp.email_device
-#         if email_device:
-#             email_device.generate_challenge()
-#             email_device.send_token()
-#             messages.success(request, 'OTP sent to your email address.')
-#         else:
-#             messages.error(request, 'Could not send OTP to your email address.')
-
-#         return redirect('send_email_otp')
-
-#     return render(request, 'send_email_otp.html')
-
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -126,3 +110,30 @@ def employee_view(request):
             return Response({"message": "Get Authenticated First"})
     # Your view code here
     return Response({'message': 'Hello, Employee View!'})
+
+
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+def reset_password(request):
+    user = request.user
+    try:
+        auth_token = AuthToken.objects.get(user=user)
+    except AuthToken.DoesNotExist:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+    if new_password != confirm_password:
+        return Response({'detail': 'New password and confirm password do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+
+    # delete existing auth token
+    auth_token.delete()
+
+    # create new auth token
+    new_auth_token = AuthToken.objects.create(user=user)
+    
+    return Response({'detail': 'Password reset successful.', 'token': new_auth_token.token}, status=status.HTTP_200_OK)

@@ -139,3 +139,10 @@ AUTH_USER_MODEL = "src.User"
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
 # EMAIL_USE_SSL = False
+
+
+# Set the EMAIL_HOST_USER setting to the email address you want to use to send the password reset emails.
+EMAIL_HOST_USER = 'your_email_address@example.com'
+
+# Set the RESET_PASSWORD_URL setting to the URL of your password reset endpoint.
+RESET_PASSWORD_URL = 'http://localhost:8000/api/auth/reset-password/'
