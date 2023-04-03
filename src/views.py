@@ -6,13 +6,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from knox.auth import AuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django_otp import devices_for_user
 from django_otp.plugins.otp_email.models import EmailDevice
 from .permissions import IsEmailVerified
-
 ####
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -95,7 +95,6 @@ def login(request):
             "token": token,
         }
     )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
